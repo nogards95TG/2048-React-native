@@ -36,5 +36,5 @@ export const compareArray = <T>(arr1: T[], arr2: T[]) => {
 
 export const compare2DArray = <T>(arr1: T[][], arr2: T[][]) => {
   //console.log('funzione compare',arr1.toString(), arr2.toString())
-  return arr1.every((row, index, arr) => compareArray(row, arr2[index]));
+  return arr1.every((row, index) => compareArray(row, arr2[index]));
 };

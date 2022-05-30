@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet, GestureResponderEvent } from "react-native";
-import { checkForLose, getBackgroundColor, play, spawnNumber, calculateScore } from "./Game";
+import { getBackgroundColor, play, spawnNumber, calculateScore, isNextMove } from "./Game";
 import { Modal, Pressable } from "react-native";
 
 export default function Board() {
@@ -25,7 +25,7 @@ export default function Board() {
   }, []);
 
   useEffect(() => {
-    if (checkForLose(board)) {
+    if (!isNextMove(board)) {
       setVisibility(!visibility);
     };
   }, [board]);
@@ -41,7 +41,7 @@ export default function Board() {
     setPosY(startY);
   };
 
-  //This function tries to map user's swipe
+  //This function wants to map user's swipe
   const endPosition = (e: GestureResponderEvent) => {
     if (visibility) return;
     const endX = e.nativeEvent.pageX;

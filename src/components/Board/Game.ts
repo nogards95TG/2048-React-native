@@ -5,6 +5,7 @@ import {
   getRandomInt,
   transpose,
 } from "../../utils";
+import { pipe } from "fp-ts/lib/pipeable";
 
 export const spawnNumber = (
   { board, hasMoved }: GameObject,
@@ -24,7 +25,7 @@ export const spawnNumber = (
 };
 
 export const resetBoard = (board: number[][]) =>
-  board.map((row) => row.map((_) => 0));
+  board.map((row) => row.map((value) => (value = 0)));
 
 //This function handle sliding and values's merging in a row
 const slide = (row: number[], direction: "left" | "right") => {
@@ -47,8 +48,8 @@ const slide = (row: number[], direction: "left" | "right") => {
   row = filterEmptyCell(row);
   const missing = 4 - row.length;
   const zeros = Array(missing).fill(0);
-  direction === "left" && (row = row.concat(zeros));
-  direction === "right" && (row = zeros.concat(row));
+  if (direction === "left") row = row.concat(zeros);
+  if (direction === "right") row = zeros.concat(row);
   return row;
 };
 
@@ -58,22 +59,44 @@ const moveRight = (board: number[][]) =>
   board.map((row) => slide(row, "right"));
 
 const moveUp = (board: number[][]) => {
-  transpose(board);
-  board = moveLeft(board);
-  transpose(board);
-  return board;
+  return pipe(
+    board,
+    (board) => {
+      transpose(board);
+      return board;
+    },
+    (board) => moveLeft(board)
+  );
 };
 
 const moveDown = (board: number[][]) => {
-  transpose(board);
-  board = moveRight(board);
-  transpose(board);
-  return board;
+  return pipe(
+    board,
+    (board) => {
+      transpose(board);
+      return board;
+    },
+    (board) => moveRight(board)
+  );
 };
 
-//TODO implement real checkForLose condition
-export const checkForLose = (board: number[][]) =>
-  !board.some((row) => row.includes(0));
+export const isNextMove = (board: number[][]) => {
+  if (boardCanMove(board)) return true;
+  else
+    return board.some((row, rowIndex, rowArr) =>
+      row.some((value, valueIndex, valueArr) => {
+        if (valueIndex < valueArr.length && rowIndex < rowArr.length) {
+          return (
+            value === valueArr[valueIndex + 1] ||
+            value === rowArr[valueIndex][rowIndex + 1]
+          );
+        }
+      })
+    );
+};
+
+export const boardCanMove = (board: number[][]) =>
+  board.some((row) => row.includes(0));
 
 export const checkForWin = (board: number[][]) =>
   board.some((row) => row.includes(2048));
@@ -96,41 +119,29 @@ export const play = (board: number[][], direction: Direction): GameObject => {
   switch (direction) {
     case "up":
       newBoard = moveUp(board);
-      //console.log("old ", oldBoard.toString());
-      //console.log("new ", newBoard.toString());
       hasMoved = !compare2DArray(newBoard, oldBoard);
       if (hasMoved) board = newBoard;
-      //console.log(hasMoved);
       return { board: newBoard, hasMoved };
     case "right":
       newBoard = moveRight(board);
-      //console.log("old ", oldBoard.toString());
-      //console.log("new ", newBoard.toString());
       hasMoved = !compare2DArray(newBoard, oldBoard);
       if (hasMoved) board = newBoard;
-      //console.log(hasMoved);
       return { board, hasMoved };
     case "down":
       newBoard = moveDown(board);
-      //console.log("old ", oldBoard.toString());
-      //console.log("new ", newBoard.toString());
       hasMoved = !compare2DArray(newBoard, oldBoard);
       if (hasMoved) board = newBoard;
-      //console.log(hasMoved);
       return { board, hasMoved };
     case "left":
       newBoard = moveLeft(board);
-      //console.log("old ", oldBoard.toString());
-      //console.log("new ", newBoard.toString());
       hasMoved = !compare2DArray(newBoard, oldBoard);
       if (hasMoved) board = newBoard;
-      //console.log(hasMoved);
       return { board, hasMoved };
     default:
-      //console.log("default", hasMoved);
       return { board, hasMoved };
   }
 };
+
 //TODO refactor this function in a smarter way
 export const getBackgroundColor = (value: number) => {
   switch (value) {
