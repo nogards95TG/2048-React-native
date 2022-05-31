@@ -65,7 +65,11 @@ const moveUp = (board: number[][]) => {
       transpose(board);
       return board;
     },
-    (board) => moveLeft(board)
+    (board) => moveLeft(board),
+    (board) => {
+      transpose(board);
+      return board;
+    }
   );
 };
 
@@ -76,7 +80,11 @@ const moveDown = (board: number[][]) => {
       transpose(board);
       return board;
     },
-    (board) => moveRight(board)
+    (board) => moveRight(board),
+    (board) => {
+      transpose(board);
+      return board;
+    }
   );
 };
 
